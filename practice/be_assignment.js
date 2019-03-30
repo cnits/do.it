@@ -12,17 +12,27 @@
 
 const
     childrenOf = (tree, node = 0) => {
-        let children = [];
         /**
          * tree = {child: parent}
          * node is a parent
          * return a list of node's children
          * tree[node] === undefined => node is a root
          */
-        if(tree[node] === undefined) {
-            children = Object.keys(tree);
+        let children = [];
+        if (!tree || node < 0 || node > Object.keys(tree).length - 1) {
+            // Do nothing
         } else {
-
+            if (tree[node] === undefined) {
+                children = Object.keys(tree);
+            } else {
+                for (const branch in tree) {
+                    const parent = Number(tree[branch]),
+                        child = Number(branch);
+                    if (node === parent) {
+                        children = [...children, child, ...childrenOf(tree, child)];
+                    }
+                }
+            }
         }
         return children;
     }
@@ -31,15 +41,15 @@ console.log('Start ', new Date().toISOString());
 
 const file = require('../utils/file'),
     lodash = require('lodash'),
-    str = file.read('../sample/be_assignment/input.ini'),
+    str = file.read('./sample/be_assignment/input.ini'),
     arr = str.split('\r\n');
 
 
 
 const [numOfUser, ...others] = arr,
     numOfAll = parseInt(numOfUser) + 1,
-    permission = Object.create(null),
-    relationship = Object.create(null),
+    permission = Object.create(null), // DATA OF NODE
+    relationship = Object.create(null), // TREE
     addition = Object.create(null);
 let i = 0;
 others.map((text, index) => {
@@ -90,10 +100,12 @@ others.map((text, index) => {
                 text = '0';// parent
             }
             relationship[i] = text;
-            permission[text] = lodash.uniq([...permission[text], ...permission[i]]).sort();
+            // permission[text] = lodash.uniq([...permission[text], ...permission[i]]).sort();
         }
     }
 });
 
-file.write('../sample/be_assignment/output.ini', lodash.toArray(permission).join('\r\n'));
+file.write('./sample/be_assignment/output.ini', lodash.toArray(permission).join('\r\n'));
 console.log('End ', new Date().toISOString(), require('os').totalmem() / (1024 * 1024))
+
+// console.log(childrenOf(relationship, 1));

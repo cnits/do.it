@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/cnits/do.it/issues"
   },
-  "homepage": "https://github.com/cnits/do.it#readme"
+  "homepage": "https://github.com/cnits/do.it#readme",
+  "dependencies": {
+    "lodash": "^4.17.11"
+  }
 }
