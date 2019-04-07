@@ -59,7 +59,6 @@ console.log('Start ', new Date().toISOString());
 // Get data from file
 const file = require('../utils/file'),
     lodash = require('lodash'),
-    memorize = require('../utils/memorize'),
     str = file.read('./sample/be_assignment/input.ini'),
     arr = str.split('\r\n');
 
@@ -100,7 +99,7 @@ others.map((text, index) => {
                         user = '0';
                     }
                     const theOrderOfQuery = trackedQuery.length;
-                    trackedQuery[theOrderOfQuery] = { [user]: operation[user] || [] };
+                    trackedQuery[theOrderOfQuery] = { [user]: { ...operation } };
                     break;
             }
 
@@ -111,7 +110,6 @@ others.map((text, index) => {
                 text = '0';// parent
             }
             relationship[i] = text;
-            // permission[text] = lodash.uniq([...permission[text], ...permission[i]]).sort();
         }
     }
 });
@@ -131,15 +129,12 @@ const output = childrenList.map(children => {
 trackedQuery.map(item => {
     const parseArr = Object.entries(item),
         _user = Number(parseArr[0][0]),
-        _values = parseArr[0][1],
+        _oprs = parseArr[0][1],
         _count = output.length,
         _children = childrenList[_user];
-    // output[_count] = getNodeValueList(_children, permission, operation);
-});
 
-console.log(output);
+    output[_count] = getNodeValueList(_children, permission, _oprs);
+});
 
 file.write('./sample/be_assignment/output.ini', output.join('\r\n'));
 console.log('End ', new Date().toISOString(), require('os').totalmem() / (1024 * 1024))
-
-// console.log(childrenOf(relationship, 1));
