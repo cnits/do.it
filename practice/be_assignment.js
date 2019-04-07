@@ -35,22 +35,44 @@ const
             }
         }
         return children;
-    }
+    },
+    getNodeValue = (node, dataset, extra = []) => {
+        const strNameNode = String(node);
+        if (!Array.isArray(extra)) {
+            extra = [];
+        }
+        if (dataset[strNameNode]) {
+            return [...dataset[strNameNode], ...extra];
+        }
+        return extra;
+    },
+    getNodeValueList = (nodeList, dataset, _operation = {}) => {
+        let _data = [];
+        for (const node of nodeList) {
+            _data = [..._data, ...getNodeValue(node, dataset, _operation[String(node)])];
+        }
+        return lodash.uniq(_data).sort();
+    };
 
 console.log('Start ', new Date().toISOString());
 
+// Get data from file
 const file = require('../utils/file'),
     lodash = require('lodash'),
+    memorize = require('../utils/memorize'),
     str = file.read('./sample/be_assignment/input.ini'),
     arr = str.split('\r\n');
 
 
-
+// Declaring variables to store data information
 const [numOfUser, ...others] = arr,
     numOfAll = parseInt(numOfUser) + 1,
     permission = Object.create(null), // DATA OF NODE
     relationship = Object.create(null), // TREE
-    addition = Object.create(null);
+    operation = Object.create(null), // Store tree changed based on perations
+    trackedQuery = []; // Tracking the order of the query which defined in the file
+
+// Analyzing the input data
 let i = 0;
 others.map((text, index) => {
     if (index < numOfAll) {
@@ -59,37 +81,26 @@ others.map((text, index) => {
     } else {
         if (/^(ADD|REMOVE|QUERY)/i.test(text)) {
             // Operation
-            let [opt, user, ...value] = text.split(' '),
-                parent = relationship[user];
+            let [opt, user, ...value] = text.split(' ');
             switch (opt) {
                 case 'ADD':
-                    if (addition[user]) {
-                        addition[user] = [...value, ...addition[user]]
+                    if (operation[user]) {
+                        operation[user] = [...value, ...operation[user]]
                     } else {
-                        addition[user] = value
-                    }
-                    if (parent) {
-                        addition[parent] = [...addition[user]]
+                        operation[user] = value
                     }
                     break;
                 case 'REMOVE':
-                    if (addition[user]) {
-                        addition[user] = addition[user].filter(item => value.indexOf(item) < 0);
-                    }
-                    if (parent) {
-                        addition[parent] = [...addition[user]]
+                    if (operation[user]) {
+                        operation[user] = operation[user].filter(item => value.indexOf(item) < 0);
                     }
                     break;
                 case 'QUERY':
                     if (['CEO', '0'].indexOf(user.toUpperCase()) >= 0) {
                         user = '0';
                     }
-                    let option = [];
-                    if (addition[user]) option = addition[user];
-
-                    permission[`${user}_${Math.random()}`] = lodash.uniq(
-                        [...permission[user], ...option]
-                    ).sort();
+                    const theOrderOfQuery = trackedQuery.length;
+                    trackedQuery[theOrderOfQuery] = { [user]: operation[user] || [] };
                     break;
             }
 
@@ -105,7 +116,30 @@ others.map((text, index) => {
     }
 });
 
-file.write('./sample/be_assignment/output.ini', lodash.toArray(permission).join('\r\n'));
+// Determine children list of each user
+const childrenList = [];
+[0, 1, 2, 3, 4, 5, 6].map(user => {
+    childrenList[user] = [user, ...childrenOf(relationship, user)];
+});
+
+// Get permission list of each user
+const output = childrenList.map(children => {
+    return getNodeValueList(children, permission);
+});
+
+// Query permission of a specific user - NOT COMPLETED
+trackedQuery.map(item => {
+    const parseArr = Object.entries(item),
+        _user = Number(parseArr[0][0]),
+        _values = parseArr[0][1],
+        _count = output.length,
+        _children = childrenList[_user];
+    // output[_count] = getNodeValueList(_children, permission, operation);
+});
+
+console.log(output);
+
+file.write('./sample/be_assignment/output.ini', output.join('\r\n'));
 console.log('End ', new Date().toISOString(), require('os').totalmem() / (1024 * 1024))
 
 // console.log(childrenOf(relationship, 1));
