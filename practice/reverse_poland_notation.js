@@ -119,9 +119,7 @@ class ReversePolandNotation {
                 this.stack.push(item);
             }
         }
-        const calculated = this.stack.toArray()[0];
-        this.stack.release();
-        return calculated;
+        return this.stack.pop();
     }
     calculate(operand1, operand2, operator) {
         let result = null;
