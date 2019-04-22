@@ -103,23 +103,28 @@ class ReversePolandNotation {
         }
     }
     calculatePostfix() {
-        this.stack.release();
-        const postfixArr = this.postfixStack.toArray();
-        for (const item of postfixArr) {
-            if (isNaN(item)) {
-                // Is operator
-                const secondOperand = this.stack.pop(),
-                    firstOperand = this.stack.pop(),
-                    result = this.calculate(firstOperand, secondOperand, item);
-                if (result !== null) {
-                    this.stack.push(result);
+        try {
+            this.stack.release();
+            const postfixArr = this.postfixStack.toArray();
+            for (const item of postfixArr) {
+                if (isNaN(item)) {
+                    // Is operator
+                    const secondOperand = this.stack.pop(),
+                        firstOperand = this.stack.pop(),
+                        result = this.calculate(firstOperand, secondOperand, item);
+                    if (result !== null) {
+                        this.stack.push(result);
+                    }
+                } else {
+                    // Is number
+                    this.stack.push(item);
                 }
-            } else {
-                // Is number
-                this.stack.push(item);
             }
+            return this.stack.pop();
+        } catch (error) {
+            return error.message;
         }
-        return this.stack.pop();
+
     }
     calculate(operand1, operand2, operator) {
         let result = null;
@@ -136,6 +141,9 @@ class ReversePolandNotation {
                 result = no1 * no2;
                 break;
             case '/':
+                if (no2 === 0) {
+                    throw new Error(`The division cann't be done with 0`)
+                }
                 result = no1 / no2;
                 break;
             case '^':
@@ -168,7 +176,7 @@ class ReversePolandNotation {
     }
 }
 
-const abc = new ReversePolandNotation('2+2^3');
+const abc = new ReversePolandNotation('2+2^3-4/0');
 
 abc.convertInfixToPostfix();
 console.log(abc.postfixStack);
