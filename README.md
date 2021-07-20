@@ -6,6 +6,8 @@ I encountered some of problems:
     > let i = 0;
     > i = 'String'; // Must throw an error at here
 
+    >> Maybe, the answer is Proxy.
+
 2. Loading a large js file vs each of js files with same size? And why?
 
 3. What happens when opening the same file at the same time in Nodejs?
